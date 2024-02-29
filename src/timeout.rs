@@ -4,17 +4,12 @@ use std::{
     future::Future,
     pin::Pin,
     task::{Context, Poll},
+    time::Duration,
 };
 
 use pin_project_lite::pin_project;
 
-pub async fn timeout<T, F, D>(future: F, delay: D) -> Result<T, TimeoutError>
-where
-    F: Future<Output = T>,
-    D: Future,
-{
-    TimeoutFuture::new(future, delay).await
-}
+use crate::timeout_future;
 
 pin_project! {
     pub struct TimeoutFuture<F, D> {
@@ -63,19 +58,33 @@ impl fmt::Display for TimeoutError {
 
 pub trait TimeoutFutureExt
 where
-    Self: Sized,
+    Self: Sized + Future,
 {
-    fn timeout<D>(self, delay: D) -> TimeoutFuture<Self, D>;
+    fn timeout_when<D>(self, when: D) -> impl Future<Output = Result<Self::Output, TimeoutError>>
+    where
+        D: Future;
+
+    fn timeout(self, delay: Duration) -> impl Future<Output = Result<Self::Output, TimeoutError>>;
 }
 
 impl<F> TimeoutFutureExt for F
 where
     F: Future,
 {
-    fn timeout<D>(self, delay: D) -> TimeoutFuture<Self, D> {
+    fn timeout_when<D>(self, delay: D) -> impl Future<Output = Result<Self::Output, TimeoutError>>
+    where
+        D: Future,
+    {
         TimeoutFuture {
             future: self,
             delay,
+        }
+    }
+
+    fn timeout(self, delay: Duration) -> impl Future<Output = Result<Self::Output, TimeoutError>> {
+        TimeoutFuture {
+            future: self,
+            delay: timeout_future(delay),
         }
     }
 }
