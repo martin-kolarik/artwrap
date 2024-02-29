@@ -2,7 +2,11 @@
 name = "artwrap"
 version = "0.1.0"
 authors = ["Martin Kolařík <martin.kolarik@smartcontrol.cz>"]
+description = "Minimal asynchronous smol/wasm wrapper for unified accessing selected primitives."
 edition = "2021"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/martin-kolarik/fetsig"
+homepage = "https://github.com/martin-kolarik/fetsig"
 
 [dependencies]
 async-channel = "^2.2"
