@@ -35,10 +35,7 @@ mod os {
 
         fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
             match self.task.as_mut() {
-                Some(task) => match task.poll(cx) {
-                    Poll::Ready(t) => Poll::Ready(t),
-                    Poll::Pending => Poll::Pending,
-                },
+                Some(task) => task.poll(cx),
                 None => unreachable!("JoinHandle polled after dropping"),
             }
         }
