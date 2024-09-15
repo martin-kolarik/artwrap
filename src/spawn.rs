@@ -85,6 +85,14 @@ mod wasm {
 
     use futures_lite::Future;
 
+    pub fn spawn<F>(f: F)
+    where
+        F: Future + Send + 'static,
+        F::Output: Send,
+    {
+        spawn_local(f)
+    }
+
     pub fn spawn_local<F>(f: F)
     where
         F: Future + 'static,
