@@ -87,8 +87,7 @@ mod wasm {
 
     pub fn spawn<F>(f: F)
     where
-        F: Future + Send + 'static,
-        F::Output: Send,
+        F: Future + 'static,
     {
         spawn_local(f)
     }
