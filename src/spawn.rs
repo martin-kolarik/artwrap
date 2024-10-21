@@ -10,13 +10,13 @@ pub use os::*;
 #[cfg(not(target_os = "unknown"))]
 mod os {
     use std::{
+        future::Future,
         pin::Pin,
         task::{Context, Poll},
         time::Duration,
     };
 
     use async_global_executor::Task;
-    use futures_lite::{Future, FutureExt};
 
     pub struct JoinHandle<T> {
         task: Option<Task<T>>,
@@ -35,7 +35,7 @@ mod os {
 
         fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
             match self.task.as_mut() {
-                Some(task) => task.poll(cx),
+                Some(task) => Future::poll(Pin::new(task), cx),
                 None => unreachable!("JoinHandle polled after dropping"),
             }
         }
@@ -81,9 +81,7 @@ mod os {
 pub use wasm::*;
 #[cfg(target_arch = "wasm32")]
 mod wasm {
-    use std::time::Duration;
-
-    use futures_lite::Future;
+    use std::{future::Future, time::Duration};
 
     pub fn spawn<F>(f: F)
     where
