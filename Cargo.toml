@@ -1,6 +1,6 @@
 [package]
 name = "artwrap"
-version = "0.1.5"
+version = "0.1.6"
 authors = ["Martin Kolařík <martin.kolarik@smartcontrol.cz>"]
 description = "Minimal asynchronous smol/wasm wrapper for unified accessing selected primitives."
 edition = "2021"
@@ -10,7 +10,6 @@ homepage = "https://github.com/martin-kolarik/artwrap"
 
 [dependencies]
 async-channel = "^2.2"
-futures-lite = { version = "^2.3", default-features = false }
 pin-project-lite = "^0.2"
 
 [target.'cfg(not(target_os = "unknown"))'.dependencies]
