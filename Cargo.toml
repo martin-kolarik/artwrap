@@ -17,7 +17,7 @@ pin-project-lite = "^0.2"
 async-global-executor = { version = "^2.4", default-features = false, features = [
     "async-io",
 ] }
-async-io = { version = "^2.3" }
+async-io = { version = "^2.4" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures = { version = "^0.4" }
