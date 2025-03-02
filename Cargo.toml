@@ -1,6 +1,6 @@
 [package]
 name = "artwrap"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["Martin Kolařík <martin.kolarik@smartcontrol.cz>"]
 description = "Minimal asynchronous smol/wasm wrapper for unified accessing selected primitives."
 edition = "2024"

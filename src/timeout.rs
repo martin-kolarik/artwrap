@@ -20,13 +20,6 @@ pin_project! {
     }
 }
 
-impl<F, D> TimeoutFuture<F, D> {
-    #[allow(dead_code)]
-    pub(super) fn new(future: F, delay: D) -> TimeoutFuture<F, D> {
-        TimeoutFuture { future, delay }
-    }
-}
-
 impl<F: Future, D: Future> Future for TimeoutFuture<F, D> {
     type Output = Result<F::Output, TimeoutError>;
 
@@ -52,7 +45,7 @@ impl Error for TimeoutError {}
 
 impl fmt::Display for TimeoutError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        "future has timed out".fmt(f)
+        "Future has timed out.".fmt(f)
     }
 }
 
