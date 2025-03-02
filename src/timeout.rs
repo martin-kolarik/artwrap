@@ -20,13 +20,6 @@ pin_project! {
     }
 }
 
-impl<F, D> TimeoutFuture<F, D> {
-    #[allow(dead_code)]
-    pub(super) fn new(future: F, delay: D) -> TimeoutFuture<F, D> {
-        TimeoutFuture { future, delay }
-    }
-}
-
 impl<F: Future, D: Future> Future for TimeoutFuture<F, D> {
     type Output = Result<F::Output, TimeoutError>;
 
@@ -35,7 +28,7 @@ impl<F: Future, D: Future> Future for TimeoutFuture<F, D> {
         match this.future.poll(cx) {
             Poll::Ready(v) => Poll::Ready(Ok(v)),
             Poll::Pending => match this.delay.poll(cx) {
-                Poll::Ready(_) => Poll::Ready(Err(TimeoutError { _private: () })),
+                Poll::Ready(_) => Poll::Ready(Err(TimeoutError)),
                 Poll::Pending => Poll::Pending,
             },
         }
@@ -44,9 +37,7 @@ impl<F: Future, D: Future> Future for TimeoutFuture<F, D> {
 
 /// An error returned when a future times out.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct TimeoutError {
-    _private: (),
-}
+pub struct TimeoutError;
 
 impl Error for TimeoutError {}
 
