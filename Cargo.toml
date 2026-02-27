@@ -1,6 +1,6 @@
 [package]
 name = "artwrap"
-version = "0.2.3"
+version = "0.3.0"
 authors = ["Martin Kolařík <martin.kolarik@smartcontrol.cz>"]
 description = "Minimal asynchronous smol/wasm wrapper for unified accessing selected primitives."
 edition = "2024"
@@ -13,10 +13,10 @@ async-channel = "^2.5"
 pin-project-lite = "^0.2"
 
 [target.'cfg(not(target_os = "unknown"))'.dependencies]
-async-global-executor = { version = "^3.1", default-features = false, features = [
-    "async-io",
-] }
+async-executor = { version = "^1.14" }
 async-io = { version = "^2.5" }
+blocking = { version = "^1.6" }
+event-listener = { version = "^5.4" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures = { version = "^0.4" }

@@ -16,7 +16,9 @@ mod os {
         time::Duration,
     };
 
-    use async_global_executor::Task;
+    use async_executor::Task;
+
+    use crate::executor;
 
     pub struct JoinHandle<T> {
         task: Option<Task<T>>,
@@ -47,7 +49,7 @@ mod os {
         F::Output: Send,
     {
         JoinHandle {
-            task: Some(async_global_executor::spawn(f)),
+            task: Some(executor::spawn(f)),
         }
     }
 
@@ -56,7 +58,7 @@ mod os {
         F: Future + 'static,
     {
         JoinHandle {
-            task: Some(async_global_executor::spawn_local(f)),
+            task: Some(executor::spawn_local(f)),
         }
     }
 
@@ -65,11 +67,11 @@ mod os {
         F: FnOnce() -> T + Send + 'static,
         T: Send + 'static,
     {
-        async_global_executor::spawn_blocking(f)
+        executor::unblock(f)
     }
 
     pub fn block_on<T>(future: impl Future<Output = T>) -> T {
-        async_io::block_on(future)
+        executor::block_on(future)
     }
 
     pub fn timeout_future(duration: Duration) -> impl Future {
