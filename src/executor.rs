@@ -1,6 +1,6 @@
 use std::{
     sync::{
-        Arc, OnceLock,
+        Arc, LazyLock,
         atomic::{AtomicBool, Ordering},
     },
     thread,
@@ -22,12 +22,10 @@ where
     LOCAL_EXECUTOR.with(|executor| executor.spawn(f))
 }
 
-static EXECUTOR: OnceLock<Arc<Executor<'static>>> = OnceLock::new();
+static EXECUTOR: LazyLock<Arc<Executor<'static>>> = LazyLock::new(|| Arc::new(Executor::new()));
 
 pub fn executor() -> &'static Executor<'static> {
-    EXECUTOR
-        .get()
-        .expect("Executor not initialized, correct use of the library is to wrap main `with_main`")
+    &*EXECUTOR
 }
 
 pub(crate) fn spawn<F>(f: F) -> Task<F::Output>
@@ -43,7 +41,6 @@ pub fn with_main<T, F: FnOnce() -> T>(f: F) -> T {
 }
 
 pub fn with_main_async<T, F: AsyncFnOnce() -> T>(f: F) -> T {
-    let _ = EXECUTOR.set(Arc::new(Executor::new()));
     with_thread_pool(|| block_on(executor().run(f())))
 }
 
@@ -56,7 +53,7 @@ fn with_thread_pool<T>(f: impl FnOnce() -> T) -> T {
             let stopper = &stopper;
 
             thread::Builder::new()
-                .name(format!("artwrap-{i}"))
+                .name(format!("artwrap-worker-{i}"))
                 .spawn_scoped(scope, || {
                     block_on(executor().run(stopper.wait()));
                 })
