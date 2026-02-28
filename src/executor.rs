@@ -24,10 +24,16 @@ where
 }
 
 static EXECUTOR: LazyLock<Arc<Executor<'static>>> = LazyLock::new(|| Arc::new(Executor::new()));
+
+static STATS_ACTIVE: AtomicBool = AtomicBool::new(false);
 static STATS: LazyLock<DashMap<thread::ThreadId, u64>> = LazyLock::new(|| DashMap::new());
 
 pub fn executor() -> &'static Executor<'static> {
     &*EXECUTOR
+}
+
+pub fn stats_active() -> &'static AtomicBool {
+    &STATS_ACTIVE
 }
 
 pub fn stats() -> &'static DashMap<thread::ThreadId, u64> {
@@ -39,8 +45,10 @@ where
     F: Future + Send + 'static,
     F::Output: Send,
 {
-    let id = thread::current_id();
-    *stats().entry(id).or_default() += 1;
+    if stats_active().load(Ordering::Relaxed) {
+        let id = thread::current_id();
+        *stats().entry(id).or_default() += 1;
+    }
 
     executor().spawn(f)
 }
