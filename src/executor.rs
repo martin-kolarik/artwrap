@@ -9,6 +9,7 @@ use std::{
 use async_executor::{Executor, LocalExecutor, Task};
 pub(crate) use async_io::block_on;
 pub(crate) use blocking::unblock;
+use dashmap::DashMap;
 use event_listener::Event;
 
 thread_local! {
@@ -23,9 +24,14 @@ where
 }
 
 static EXECUTOR: LazyLock<Arc<Executor<'static>>> = LazyLock::new(|| Arc::new(Executor::new()));
+static STATS: LazyLock<DashMap<thread::ThreadId, u64>> = LazyLock::new(|| DashMap::new());
 
 pub fn executor() -> &'static Executor<'static> {
     &*EXECUTOR
+}
+
+pub fn stats() -> &'static DashMap<thread::ThreadId, u64> {
+    &STATS
 }
 
 pub(crate) fn spawn<F>(f: F) -> Task<F::Output>
@@ -33,6 +39,9 @@ where
     F: Future + Send + 'static,
     F::Output: Send,
 {
+    let id = thread::current_id();
+    *stats().entry(id).or_default() += 1;
+
     executor().spawn(f)
 }
 
