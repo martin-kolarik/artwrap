@@ -1,6 +1,6 @@
 [package]
 name = "artwrap"
-version = "0.3.2"
+version = "0.3.3"
 authors = ["Martin Kolařík <martin.kolarik@smartcontrol.cz>"]
 description = "Minimal asynchronous smol/wasm wrapper for unified accessing selected primitives."
 edition = "2024"
@@ -21,4 +21,4 @@ event-listener = { version = "^5.4" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures = { version = "^0.4" }
-gloo-timers = { version = "^0.3", features = ["futures"] }
+gloo-timers = { version = "^0.4", features = ["futures"] }
