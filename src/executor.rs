@@ -28,8 +28,8 @@ static EXECUTOR: LazyLock<Arc<Executor<'static>>> = LazyLock::new(|| Arc::new(Ex
 static STATS_ACTIVE: AtomicBool = AtomicBool::new(false);
 static STATS: LazyLock<DashMap<thread::ThreadId, u64>> = LazyLock::new(|| DashMap::new());
 
-pub fn executor() -> &'static Executor<'static> {
-    &*EXECUTOR
+pub fn executor() -> &'static Arc<Executor<'static>> {
+    &EXECUTOR
 }
 
 pub fn stats_active() -> &'static AtomicBool {
