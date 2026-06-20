@@ -13,7 +13,7 @@ mod os {
         future::Future,
         pin::Pin,
         task::{Context, Poll},
-        time::Duration,
+        time::{Duration, Instant},
     };
 
     use async_executor::Task;
@@ -74,7 +74,7 @@ mod os {
         executor::block_on(future)
     }
 
-    pub fn timeout_future(duration: Duration) -> impl Future {
+    pub fn timeout_future(duration: Duration) -> impl Future<Output = Instant> {
         async_io::Timer::after(duration)
     }
 }
@@ -101,7 +101,7 @@ mod wasm {
         });
     }
 
-    pub fn timeout_future(duration: Duration) -> impl Future {
+    pub fn timeout_future(duration: Duration) -> impl Future<Output = ()> {
         gloo_timers::future::TimeoutFuture::new(duration.as_millis() as u32)
     }
 }
