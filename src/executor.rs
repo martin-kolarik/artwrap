@@ -1,4 +1,5 @@
 use std::{
+    num::NonZeroUsize,
     sync::{
         Arc, LazyLock,
         atomic::{AtomicBool, Ordering},
@@ -54,18 +55,20 @@ where
 }
 
 pub fn with_main<T, F: FnOnce() -> T>(f: F) -> T {
-    with_main_async(|| async { f() })
+    with_main_async(None, || async { f() })
 }
 
-pub fn with_main_async<T, F: AsyncFnOnce() -> T>(f: F) -> T {
-    with_thread_pool(|| block_on(executor().run(f())))
+pub fn with_main_async<T, F: AsyncFnOnce() -> T>(thread_count: Option<NonZeroUsize>, f: F) -> T {
+    with_thread_pool(thread_count, || block_on(executor().run(f())))
 }
 
-fn with_thread_pool<T>(f: impl FnOnce() -> T) -> T {
+fn with_thread_pool<T>(thread_count: Option<NonZeroUsize>, f: impl FnOnce() -> T) -> T {
     let stopper = WaitForStop::new();
 
     thread::scope(|scope| {
-        let num_threads = thread::available_parallelism().map_or(1, |num| num.get());
+        let num_threads = thread_count
+            .unwrap_or_else(|| thread::available_parallelism().map_or(NonZeroUsize::MIN, |num| num))
+            .get();
         for i in 0..num_threads {
             let stopper = &stopper;
 
