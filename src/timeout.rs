@@ -11,16 +11,21 @@ use pin_project_lite::pin_project;
 
 use crate::timeout_future;
 
+#[cfg(not(target_os = "unknown"))]
+pub use async_io::Timer as TimeoutFuture;
+#[cfg(target_arch = "wasm32")]
+pub use gloo_timers::future::TimeoutFuture;
+
 pin_project! {
-    pub struct TimeoutFuture<F, D> {
+    pub struct TimeoutableFuture<F> {
         #[pin]
         future: F,
         #[pin]
-        delay: D,
+        delay: TimeoutFuture,
     }
 }
 
-impl<F: Future, D: Future> Future for TimeoutFuture<F, D> {
+impl<F: Future> Future for TimeoutableFuture<F> {
     type Output = Result<F::Output, TimeoutError>;
 
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
@@ -53,29 +58,15 @@ pub trait TimeoutFutureExt
 where
     Self: Sized + Future,
 {
-    fn timeout_when<D>(self, when: D) -> impl Future<Output = Result<Self::Output, TimeoutError>>
-    where
-        D: Future;
-
-    fn timeout(self, delay: Duration) -> impl Future<Output = Result<Self::Output, TimeoutError>>;
+    fn timeout(self, delay: Duration) -> TimeoutableFuture<Self>;
 }
 
 impl<F> TimeoutFutureExt for F
 where
     F: Future,
 {
-    fn timeout_when<D>(self, delay: D) -> impl Future<Output = Result<Self::Output, TimeoutError>>
-    where
-        D: Future,
-    {
-        TimeoutFuture {
-            future: self,
-            delay,
-        }
-    }
-
-    fn timeout(self, delay: Duration) -> impl Future<Output = Result<Self::Output, TimeoutError>> {
-        TimeoutFuture {
+    fn timeout(self, delay: Duration) -> TimeoutableFuture<Self> {
+        TimeoutableFuture {
             future: self,
             delay: timeout_future(delay),
         }
