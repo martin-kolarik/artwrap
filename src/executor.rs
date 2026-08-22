@@ -14,7 +14,7 @@ use dashmap::DashMap;
 use event_listener::Event;
 
 thread_local! {
-    static LOCAL_EXECUTOR: LocalExecutor<'static> = LocalExecutor::new();
+    static LOCAL_EXECUTOR: LocalExecutor<'static> = const { LocalExecutor::new() };
 }
 
 pub(crate) fn spawn_local<F>(f: F) -> Task<F::Output>
@@ -27,7 +27,7 @@ where
 static EXECUTOR: LazyLock<Arc<Executor<'static>>> = LazyLock::new(|| Arc::new(Executor::new()));
 
 static STATS_ACTIVE: AtomicBool = AtomicBool::new(false);
-static STATS: LazyLock<DashMap<thread::ThreadId, u64>> = LazyLock::new(|| DashMap::new());
+static STATS: LazyLock<DashMap<thread::ThreadId, u64>> = LazyLock::new(DashMap::new);
 
 pub fn executor() -> &'static Arc<Executor<'static>> {
     &EXECUTOR
@@ -67,7 +67,7 @@ fn with_thread_pool<T>(thread_count: Option<NonZeroUsize>, f: impl FnOnce() -> T
 
     thread::scope(|scope| {
         let num_threads = thread_count
-            .unwrap_or_else(|| thread::available_parallelism().map_or(NonZeroUsize::MIN, |num| num))
+            .unwrap_or_else(|| thread::available_parallelism().unwrap_or(NonZeroUsize::MIN))
             .get();
         for i in 0..num_threads {
             let stopper = &stopper;
